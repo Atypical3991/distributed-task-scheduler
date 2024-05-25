@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class SpringKubernetesSetupApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SpringKubernetesSetupApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SpringKubernetesSetupApplication.class, args);
+    }
 
 }
