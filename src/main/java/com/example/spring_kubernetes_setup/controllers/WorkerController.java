@@ -1,8 +1,6 @@
 package com.example.spring_kubernetes_setup.controllers;
 
-import com.example.spring_kubernetes_setup.components.CuratorFrameworkComponent;
 import com.example.spring_kubernetes_setup.services.WorkerService;
-import com.example.spring_kubernetes_setup.utils.ZKUtils;
 import jakarta.websocket.server.PathParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,18 +17,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class WorkerController {
 
-    private final CuratorFrameworkComponent curatorFrameworkComponent;
-    private WorkerService worker;
+//    private final CuratorFrameworkComponent curatorFrameworkComponent;
 
     @Autowired
-    public WorkerController(CuratorFrameworkComponent curatorFrameworkComponent) {
-        this.curatorFrameworkComponent = curatorFrameworkComponent;
-        initWorker();
-    }
+    private WorkerService worker;
 
-    public void initWorker() {
-        worker = new WorkerService(curatorFrameworkComponent.getCuratorFramework(), ZKUtils.LEADER_ROOT);
-    }
+//    @Autowired
+//    public WorkerController(CuratorFrameworkComponent curatorFrameworkComponent) {
+//        this.curatorFrameworkComponent = curatorFrameworkComponent;
+//        initWorker();
+//    }
+//
+//    public void initWorker() {
+//        worker = new WorkerService(curatorFrameworkComponent.getCuratorFramework(), ZKUtils.LEADER_ROOT);
+//    }
 
     @DeleteMapping("/{id}")
     public void stopWorker(@PathParam("id") String id) {

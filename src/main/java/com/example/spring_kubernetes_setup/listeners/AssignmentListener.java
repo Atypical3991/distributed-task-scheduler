@@ -1,5 +1,8 @@
 package com.example.spring_kubernetes_setup.listeners;
 
+import com.example.spring_kubernetes_setup.DTOs.job.JobDetail;
+import com.example.spring_kubernetes_setup.components.MyBeanRetriever;
+import com.example.spring_kubernetes_setup.services.TaskManagerService;
 import com.example.spring_kubernetes_setup.utils.ZKUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
@@ -9,9 +12,11 @@ import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,6 +26,7 @@ public class AssignmentListener implements CuratorCacheListener {
     private final CuratorFramework curator;
     private final ExecutorService executorService;
 
+    @Autowired
     public AssignmentListener(CuratorFramework curator) {
         this.curator = curator;
         this.executorService = Executors.newFixedThreadPool(10);
@@ -40,9 +46,11 @@ public class AssignmentListener implements CuratorCacheListener {
                 byte[] bytes = data.getData();
                 ObjectInputStream objectInputStream =
                         new ObjectInputStream(new ByteArrayInputStream(bytes));
-                Runnable jobDetail = (Runnable) objectInputStream.readObject();
+                JobDetail jobDetail = (JobDetail) objectInputStream.readObject();
                 log.info("Deserialized the JobId {} to {}", jobId, jobDetail);
-                CompletableFuture<Void> future = CompletableFuture.runAsync(jobDetail, executorService);
+                Runnable jobRunnable = (Runnable & Serializable)
+                        (() -> MyBeanRetriever.getBean(TaskManagerService.class).processTask(jobDetail));
+                CompletableFuture<Void> future = CompletableFuture.runAsync(jobRunnable, executorService);
                 // Actual execution of the job will be performed in a separate thread to avoid blocking of
                 // watcher thread
                 log.info("Job submitted for execution");

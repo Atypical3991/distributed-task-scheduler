@@ -1,9 +1,9 @@
 package com.example.spring_kubernetes_setup.controllers;
 
 
-import com.example.spring_kubernetes_setup.components.CuratorFrameworkComponent;
 import com.example.spring_kubernetes_setup.utils.ZKUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,19 +17,22 @@ import java.util.UUID;
 @RestController
 public class JobController {
 
-    private final CuratorFrameworkComponent curatorFrameworkComponent;
+//    private final CuratorFrameworkComponent curatorFrameworkComponent;
+//
+//    @Autowired
+//    public JobController(CuratorFrameworkComponent curatorFrameworkComponent) {
+//        this.curatorFrameworkComponent = curatorFrameworkComponent;
+//    }
 
     @Autowired
-    public JobController(CuratorFrameworkComponent curatorFrameworkComponent) {
-        this.curatorFrameworkComponent = curatorFrameworkComponent;
-    }
+    private CuratorFramework curatorFramework;
 
 
     @PostMapping("/process-job")
     public void createJob(String jobData) {
         log.info("Received job {}", jobData);
         try {
-            curatorFrameworkComponent.getCuratorFramework()
+            curatorFramework
                     .create()
                     .withMode(CreateMode.PERSISTENT)
                     .forPath(ZKUtils.getJobsPath() + "/" + UUID.randomUUID(), jobData.getBytes());
