@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hello-world
+  name: distributed-task-scheduler
 spec:
   replicas: 4
   selector:
     matchLabels:
-      app: hello-world
+      app: distributed-task-scheduler
   template:
     metadata:
       labels:
-        app: hello-world
+        app: distributed-task-scheduler
     spec:
       containers:
-        - name: hello-world
-          image: hello-world:latest
+        - name: distributed-task-scheduler
+          image: distributed-task-scheduler:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
