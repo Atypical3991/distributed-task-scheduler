@@ -27,7 +27,7 @@ public class ClientController {
             jobDetail.setTaskArgs(taskArgs);
             return ResponseEntity.ok().body(clientService.registerJob(jobDetail));
         } catch (Exception e) {
-            log.error(String.format("createSumTask call failed!! taskName: %s, taskArgs: %s.", taskName, taskArgs.toString()));
+            log.error(String.format("createSumTask call failed!! taskName: %s, taskArgs: %s.", taskName, taskArgs.toString()), e);
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
 

@@ -2,6 +2,9 @@ package com.example.distributed_task_scheduler.listeners;
 
 import com.example.distributed_task_scheduler.DTOs.job.JobDetail;
 import com.example.distributed_task_scheduler.components.MyBeanRetriever;
+import com.example.distributed_task_scheduler.models.entities.Job;
+import com.example.distributed_task_scheduler.models.entities.enums.JobStatusEnum;
+import com.example.distributed_task_scheduler.repositories.JobRepository;
 import com.example.distributed_task_scheduler.services.TaskManagerService;
 import com.example.distributed_task_scheduler.utils.ZKUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +27,15 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class AssignmentListener implements CuratorCacheListener {
     private final CuratorFramework curator;
+    private final String workerId;
     private final ExecutorService executorService;
 
+
+    private final JobRepository jobRepository = MyBeanRetriever.getBean(JobRepository.class);
+
     @Autowired
-    public AssignmentListener(CuratorFramework curator) {
+    public AssignmentListener(CuratorFramework curator, String workerId) {
+        this.workerId = workerId;
         this.curator = curator;
         this.executorService = Executors.newFixedThreadPool(10);
     }
@@ -42,12 +50,17 @@ public class AssignmentListener implements CuratorCacheListener {
             String jobId = data.getPath().substring(data.getPath().lastIndexOf('/') + 1);
             log.info("Assignment found for job id {}", jobId);
 
+
             try {
                 byte[] bytes = data.getData();
                 ObjectInputStream objectInputStream =
                         new ObjectInputStream(new ByteArrayInputStream(bytes));
                 JobDetail jobDetail = (JobDetail) objectInputStream.readObject();
                 log.info("Deserialized the JobId {} to {}", jobId, jobDetail);
+                Job job = jobRepository.findByJobId(jobDetail.getJobId());
+                job.setWorkerId(workerId);
+                job.setStatus(JobStatusEnum.PROCESSING);
+                jobRepository.save(job);
                 Runnable jobRunnable = (Runnable & Serializable)
                         (() -> MyBeanRetriever.getBean(TaskManagerService.class).processTask(jobDetail));
                 CompletableFuture<Void> future = CompletableFuture.runAsync(jobRunnable, executorService);
@@ -59,6 +72,8 @@ public class AssignmentListener implements CuratorCacheListener {
                 // this cleanup happens.
                 // TODO: Implement a daemon service which performs cleanup
                 future.thenAcceptAsync(__ -> asyncCreate(jobId, data.getPath()), executorService);
+                job.setStatus(JobStatusEnum.SUCCESS);
+                jobRepository.save(job);
             } catch (Exception e) {
                 log.error("Unable to fetch data for job id {}", jobId, e);
             }

@@ -1,6 +1,8 @@
 package com.example.distributed_task_scheduler.services;
 
 import com.example.distributed_task_scheduler.DTOs.job.JobDetail;
+import com.example.distributed_task_scheduler.models.entities.Job;
+import com.example.distributed_task_scheduler.repositories.JobRepository;
 import com.example.distributed_task_scheduler.utils.ZKUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
@@ -19,8 +21,15 @@ public class ClientService {
     @Autowired
     private CuratorFramework curatorFramework;
 
+    @Autowired
+    private JobRepository jobRepository;
+
     public String registerJob(JobDetail jobDetail) {
         String jobId = UUID.randomUUID().toString();
+        Job job = new Job();
+        job.setJobId(jobId);
+        job.setTaskArgs(jobDetail.toString());
+        jobRepository.save(job);
         jobDetail.setJobId(jobId);
         syncCreate(ZKUtils.getJobsPath() + "/" + jobId, jobDetail);
         return jobId;

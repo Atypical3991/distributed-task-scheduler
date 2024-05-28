@@ -4,6 +4,7 @@ import com.example.distributed_task_scheduler.services.WorkerService;
 import jakarta.websocket.server.PathParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,29 +18,28 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class WorkerController {
 
-//    private final CuratorFrameworkComponent curatorFrameworkComponent;
-
     @Autowired
     private WorkerService worker;
 
-//    @Autowired
-//    public WorkerController(CuratorFrameworkComponent curatorFrameworkComponent) {
-//        this.curatorFrameworkComponent = curatorFrameworkComponent;
-//        initWorker();
-//    }
-//
-//    public void initWorker() {
-//        worker = new WorkerService(curatorFrameworkComponent.getCuratorFramework(), ZKUtils.LEADER_ROOT);
-//    }
-
     @DeleteMapping("/{id}")
-    public void stopWorker(@PathParam("id") String id) {
-        worker.stop();
+    public ResponseEntity<String> stopWorker(@PathParam("id") String id) {
+        try {
+            worker.stop();
+            return ResponseEntity.ok().body("Worker stopped successfully.");
+        } catch (Exception e) {
+            log.error("stopWorker call failed!!", e);
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
 
 
     @GetMapping("/leader")
-    public String getLeaderId() {
-        return worker.getLeader().orElse("No leader found");
+    public ResponseEntity<String> getLeaderId() {
+        try {
+            return ResponseEntity.ok().body(worker.getLeader().orElse("No leader found"));
+        } catch (Exception e) {
+            log.error("getLeaderId call failed!!", e);
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
 }

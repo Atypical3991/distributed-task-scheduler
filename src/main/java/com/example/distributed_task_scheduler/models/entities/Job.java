@@ -1,12 +1,16 @@
 package com.example.distributed_task_scheduler.models.entities;
 
 import com.example.distributed_task_scheduler.models.entities.enums.JobStatusEnum;
+import com.example.distributed_task_scheduler.models.entities.listeners.JobEntityListener;
 import com.example.distributed_task_scheduler.tasks.TaskEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
+import static com.example.distributed_task_scheduler.utils.DateUtil.getCurrentISTTime;
+
+@EntityListeners(JobEntityListener.class)
 @Entity
 @Data
 public class Job {
@@ -14,6 +18,8 @@ public class Job {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private String jobId;
 
     private String workerId;
 
@@ -23,10 +29,10 @@ public class Job {
     private String taskArgs;
 
     @Enumerated(EnumType.STRING)
-    private JobStatusEnum status;
+    private JobStatusEnum status = JobStatusEnum.CREATED;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = getCurrentISTTime();
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt = getCurrentISTTime();
 
 }

@@ -1,7 +1,8 @@
 package com.example.distributed_task_scheduler.repositories;
 
-import org.springframework.boot.autoconfigure.batch.BatchProperties;
+import com.example.distributed_task_scheduler.models.entities.Job;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface JobRepository extends JpaRepository<BatchProperties.Job, Long> {
+public interface JobRepository extends JpaRepository<Job, Long> {
+    Job findByJobId(String jobId);
 }

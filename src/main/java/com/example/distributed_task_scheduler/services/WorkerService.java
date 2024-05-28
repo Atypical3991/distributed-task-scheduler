@@ -1,11 +1,13 @@
 package com.example.distributed_task_scheduler.services;
 
 
+import com.example.distributed_task_scheduler.components.MyBeanRetriever;
 import com.example.distributed_task_scheduler.listeners.AssignmentListener;
 import com.example.distributed_task_scheduler.listeners.JobsListener;
 import com.example.distributed_task_scheduler.listeners.WorkersListener;
 import com.example.distributed_task_scheduler.modules.strategy.RoundRobinWorker;
 import com.example.distributed_task_scheduler.modules.strategy.WorkerPickerStrategy;
+import com.example.distributed_task_scheduler.repositories.WorkerRepository;
 import com.example.distributed_task_scheduler.utils.ZKUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,8 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 @Getter
 public class WorkerService implements LeaderSelectorListener, Closeable {
+
+    private final WorkerRepository workerRepository = MyBeanRetriever.getBean(WorkerRepository.class);
 
     private final LeaderSelector leaderSelector;
     private final AtomicBoolean shouldStop = new AtomicBoolean(false);
@@ -157,7 +161,7 @@ public class WorkerService implements LeaderSelectorListener, Closeable {
         assignmentCache = CuratorCache.build(curator, ZKUtils.getAssignmentPath(name));
         log.info("Watching {}", ZKUtils.getAssignmentPath(name));
         assignmentCache.start();
-        assignmentListener = new AssignmentListener(curator);
+        assignmentListener = new AssignmentListener(curator, name);
         assignmentCache.listenable().addListener(assignmentListener);
     }
 
